@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Workflow - Claims Processing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .settings-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .settings-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .threshold-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-zone {
+            border: 3px dashed #ddd;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .file-upload-zone:hover {
+            border-color: #ff6b6b;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .file-upload-zone.dragover {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+        }
+
+        .file-label {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .file-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .process-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .process-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .process-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .circular-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: #e6e6e6;
+            stroke-width: 8;
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: url(#progressGradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-info {
+            flex: 1;
+        }
+
+        .current-step {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .time-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .download-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .download-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .download-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .filename-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .back-home {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .back-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .notice-board {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .notice-title {
+            background: #ffd700;
+            color: #333;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .download-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Standard Workflow</h1>
+        </div>
+
+        <div class="notice-board">
+            <div class="notice-title">NOTICE BOARD</div>
+            <p>Do not include any form of PII in your uploaded files</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            Error message will appear here
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="file-upload-zone" onclick="document.getElementById('originalTariff').click()">
+                    <div class="file-icon">📊</div>
+                    <div class="file-label">Original Tariff</div>
+                    <div class="file-description">Drag & drop your Excel file here or click to browse</div>
+                    <input type="file" id="originalTariff" class="file-input" accept=".xlsx,.xls">
+                </div>
+
+                <div class="file-upload-zone" onclick="document.getElementById('claimsExport').click()">
+                    <div class="file-icon">📈</div>
+                    <div class="file-label">Claims Export</div>
+                    <div class="file-description">Drag & drop your Excel file here or click to browse</div>
+                    <input type="file" id="claimsExport" class="file-input" accept=".xlsx,.xls">
+                </div>
+
+                <div class="file-upload-zone" onclick="document.getElementById('dsOutput').click()">
+                    <div class="file-icon">🤖</div>
+                    <div class="file-label">DS Model Output</div>
+                    <div class="file-description">Drag & drop your Excel file here or click to browse</div>
+                    <input type="file" id="dsOutput" class="file-input" accept=".xlsx,.xls">
+                </div>
+
+                <button class="process-button" onclick="startProcessing()" id="processButton">Process Claims Data</button>
+            </div>
+
+            <div class="settings-panel">
+                <div class="settings-title">Settings</div>
+                <label style="display: block; margin-bottom: 10px;">Match Percentage Threshold:</label>
+                <input type="number" class="threshold-input" value="0.83" min="0" max="1" step="0.01" id="matchThreshold">
+                <div style="font-size: 0.8rem; opacity: 0.8;">Default: 0.83 (recommended)</div>
+            </div>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-container">
+                <div class="circular-progress">
+                    <svg class="progress-ring" width="120" height="120">
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff6b6b"/>
+                                <stop offset="100%" style="stop-color:#ffa500"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring-bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress-ring-fill" cx="60" cy="60" r="50" id="progressRing"></circle>
+                    </svg>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                <div class="progress-info">
+                    <div class="current-step" id="currentStep">Initializing...</div>
+                    <div class="time-info">
+                        <div>Elapsed: <span id="elapsed">0s</span></div>
+                        <div>Remaining: <span id="remaining">~10s</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>Processing Complete!</h2>
+                <p>Processing time: <span id="totalTime">N/A</span></p>
+            </div>
+
+            <div class="results-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRecords">0</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="goodMatches">0</div>
+                    <div class="stat-label">Good Matches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="poorMatches">0</div>
+                    <div class="stat-label">Poor Matches</div>
+                </div>
+            </div>
+
+            <div class="download-section">
+                <div class="download-card" onclick="downloadFile('good_match')">
+                    <div class="download-icon">✅</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">Good Matches</div>
+                    <input type="text" class="filename-input" id="goodFilename" value="tariff_st_analysis_good" placeholder="Custom filename">
+                </div>
+                
+                <div class="download-card" onclick="downloadFile('poor_match')">
+                    <div class="download-icon">❌</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">Poor Matches</div>
+                    <input type="text" class="filename-input" id="poorFilename" value="tariff_st_analysis_poor" placeholder="Custom filename">
+                </div>
+                
+                <div class="download-card" onclick="downloadFile('all')">
+                    <div class="download-icon">📄</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">Complete Dataset</div>
+                    <input type="text" class="filename-input" id="allFilename" value="tariff_st_analysis_complete" placeholder="Custom filename">
+                </div>
+            </div>
+        </div>
+
+        <button class="back-home" onclick="goHome()">🏠 Back to Hub</button>
+    </div>
+
+    <script>
+        let currentProcessId = null;
+        let startTime = null;
+        let progressInterval = null;
+
+        // File upload handlers
+        document.querySelectorAll('.file-upload-zone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const input = zone.querySelector('input[type="file"]');
+                    input.files = files;
+                    updateFileZone(zone, files[0].name);
+                }
+            });
+        });
+
+        document.querySelectorAll('.file-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const zone = e.target.closest('.file-upload-zone');
+                    updateFileZone(zone, e.target.files[0].name);
+                }
+            });
+        });
+
+        function updateFileZone(zone, filename) {
+            zone.style.background = 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
+            zone.querySelector('.file-description').textContent = `✅ ${filename}`;
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function validateFiles() {
+            const files = {
+                originalTariff: document.getElementById('originalTariff').files[0],
+                claimsExport: document.getElementById('claimsExport').files[0],
+                dsOutput: document.getElementById('dsOutput').files[0]
+            };
+
+            for (const [key, file] of Object.entries(files)) {
+                if (!file) {
+                    showError(`Please upload ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        async function startProcessing() {
+            if (!validateFiles()) {
+                return;
+            }
+
+            const processButton = document.getElementById('processButton');
+            processButton.disabled = true;
+            processButton.textContent = 'Processing...';
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('originalTariff', document.getElementById('originalTariff').files[0]);
+            formData.append('claimsExport', document.getElementById('claimsExport').files[0]);
+            formData.append('dsOutput', document.getElementById('dsOutput').files[0]);
+            formData.append('matchThreshold', document.getElementById('matchThreshold').value);
+
+            try {
+                // Start processing
+                const response = await fetch('/api/process-claims', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Processing failed');
+                }
+
+                const result = await response.json();
+                currentProcessId = result.processing_id;
+                startTime = Date.now();
+
+                // Show progress section
+                document.getElementById('progressSection').style.display = 'block';
+                
+                // Start polling for progress
+                progressInterval = setInterval(checkProgress, 500);
+
+            } catch (error) {
+                showError(error.message);
+                processButton.disabled = false;
+                processButton.textContent = 'Process Claims Data';
+            }
+        }
+
+        async function checkProgress() {
+            if (!currentProcessId) return;
+
+            try {
+                const response = await fetch(`/api/processing-status/${currentProcessId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to check progress');
+                }
+
+                const status = await response.json();
+                
+                // Update progress display
+                updateProgress(
+                    status.progress, 
+                    status.current_step,
+                    Math.floor((Date.now() - startTime) / 1000),
+                    Math.max(0, 10 - Math.floor((Date.now() - startTime) / 1000))
+                );
+
+                if (status.status === 'completed') {
+                    clearInterval(progressInterval);
+                    showResults(status.statistics);
+                } else if (status.status === 'error') {
+                    clearInterval(progressInterval);
+                    showError(status.error || 'Processing failed');
+                    resetUI();
+                }
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                showError('Failed to check processing status');
+                resetUI();
+            }
+        }
+
+        function updateProgress(percent, step, elapsed, remaining) {
+            const circle = document.getElementById('progressRing');
+            const circumference = 314;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            circle.style.strokeDashoffset = offset;
+            document.getElementById('progressText').textContent = Math.round(percent) + '%';
+            document.getElementById('currentStep').textContent = step;
+            document.getElementById('elapsed').textContent = elapsed + 's';
+            document.getElementById('remaining').textContent = '~' + remaining + 's';
+        }
+
+        function showResults(statistics) {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Update statistics
+            document.getElementById('totalRecords').textContent = statistics.total_records.toLocaleString();
+            document.getElementById('goodMatches').textContent = statistics.good_matches.toLocaleString();
+            document.getElementById('poorMatches').textContent = statistics.poor_matches.toLocaleString();
+            
+            // Update processing time
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('totalTime').textContent = totalTime + 's';
+
+            // Update default filenames with timestamp
+            const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+            document.getElementById('goodFilename').value = `tariff_st_analysis_good_${timestamp}`;
+            document.getElementById('poorFilename').value = `tariff_st_analysis_poor_${timestamp}`;
+            document.getElementById('allFilename').value = `tariff_st_analysis_complete_${timestamp}`;
+        }
+
+        function resetUI() {
+            const processButton = document.getElementById('processButton');
+            processButton.disabled = false;
+            processButton.textContent = 'Process Claims Data';
+            document.getElementById('progressSection').style.display = 'none';
+        }
+
+        async function downloadFile(type) {
+            if (!currentProcessId) {
+                showError('No processing results available');
+                return;
+            }
+
+            let filename = '';
+            switch(type) {
+                case 'good_match':
+                    filename = document.getElementById('goodFilename').value;
+                    break;
+                case 'poor_match':
+                    filename = document.getElementById('poorFilename').value;
+                    break;
+                case 'all':
+                    filename = document.getElementById('allFilename').value;
+                    break;
+            }
+
+            try {
+                const response = await fetch(`/api/download/${currentProcessId}?sheet=${type}&filename=${encodeURIComponent(filename)}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Download failed');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

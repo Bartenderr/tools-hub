@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Tools Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .tools-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            transform: rotate(-2deg);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hub-badge {
+            background: linear-gradient(45deg, #f5f7fa, #c3cfe2);
+            color: #333;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: rotate(2deg);
+        }
+
+        .subtitle {
+            font-size: 2.5rem;
+            color: #fff;
+            font-weight: bold;
+            margin-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .notice-board {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 25px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 3px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .notice-title {
+            background: #ffd700;
+            color: #333;
+            padding: 12px 30px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .notice-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .tool-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .standard-workflow .tool-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .splitter .tool-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .process-items .tool-icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .model-matching .tool-icon {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .diagnosis .tool-icon {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .ask-tools .tool-icon {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .coming-soon .tool-icon {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .docs .tool-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tool-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tool-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .tool-status {
+            margin-top: 15px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-ready {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .status-coming-soon {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-circle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .floating-circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-badge {
+                font-size: 2rem;
+                padding: 12px 30px;
+            }
+            
+            .hub-badge {
+                font-size: 1.5rem;
+                margin-left: 10px;
+            }
+            
+            .subtitle {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div>
+                <span class="tools-badge">TOOLS</span>
+                <span class="hub-badge">HUB</span>
+            </div>
+            <div class="subtitle">Automation</div>
+        </div>
+
+        <div class="notice-board">
+            <div class="notice-title">NOTICE BOARD</div>
+            <div class="notice-content">
+                <p><strong>Privacy Notice:</strong> Do not include any form of PII (Personal Identifiable Information) in your uploaded files</p>
+                <p><strong>Data Processing:</strong> All files are processed locally and automatically deleted after 5 minutes of inactivity</p>
+            </div>
+        </div>
+
+        <div class="tools-grid">
+            <div class="tool-card standard-workflow" onclick="openStandardWorkflow()">
+                <div class="tool-icon">📊</div>
+                <div class="tool-title">Standard Workflow</div>
+                <div class="tool-description">Process claims data with tariff matching, quality analysis, and automated classification</div>
+                <div class="tool-status status-ready">Ready to Use</div>
+            </div>
+
+            <div class="tool-card splitter">
+                <div class="tool-icon">🔄</div>
+                <div class="tool-title">Splitter</div>
+                <div class="tool-description">Split large datasets into manageable chunks based on custom criteria and conditions</div>
+                <div class="tool-status status-coming-soon">Coming Soon</div>
+            </div>
+
+            <div class="tool-card process-items">
+                <div class="tool-icon">📋</div>
+                <div class="tool-title">Process Item List</div>
+                <div class="tool-description">Automated processing and validation of item lists with duplicate detection</div>
+                <div class="tool-status status-coming-soon">Coming Soon</div>
+            </div>
+
+            <div class="tool-card model-matching">
+                <div class="tool-icon">🤖</div>
+                <div class="tool-title">Model Matching</div>
+                <div class="tool-description">Advanced AI-powered data matching and similarity detection algorithms</div>
+                <div class="tool-status status-coming-soon">Coming Soon</div>
+            </div>
+
+            <div class="tool-card diagnosis">
+                <div class="tool-icon">⚕️</div>
+                <div class="tool-title">Diagnosis Processor</div>
+                <div class="tool-description">Analyze and categorize diagnostic data with automated quality checks</div>
+                <div class="tool-status status-coming-soon">Coming Soon</div>
+            </div>
+
+            <div class="tool-card ask-tools">
+                <div class="tool-icon">🎤</div>
+                <div class="tool-title">Ask for A Tools</div>
+                <div class="tool-description">Request custom automation tools tailored to your specific workflow needs</div>
+                <div class="tool-status status-coming-soon">Request Feature</div>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-icon">💡</div>
+                <div class="tool-title">More Tools</div>
+                <div class="tool-description">Additional automation tools are in development. Stay tuned for updates!</div>
+                <div class="tool-status status-coming-soon">In Development</div>
+            </div>
+
+            <div class="tool-card docs" onclick="openDocs()">
+                <div class="tool-icon">📚</div>
+                <div class="tool-title">Documentation</div>
+                <div class="tool-description">Comprehensive guides, tutorials, and API documentation for all tools</div>
+                <div class="tool-status status-ready">Available</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Automation Tools Hub | Streamlining Data Processing Workflows</p>
+            <p>Built with ❤️ for Data Analysts and Teams</p>
+        </div>
+    </div>
+
+    <script>
+        function openStandardWorkflow() {
+            window.location.href = '/standard-workflow';
+        }
+
+        function openDocs() {
+            alert('📚 Opening Documentation...\n\nThis would open the comprehensive documentation portal.');
+        }
+
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
