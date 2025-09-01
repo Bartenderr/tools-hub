@@ -316,6 +316,9 @@ class ClaimsProcessor:
         excel_file = pd.ExcelFile(BytesIO(content))
         df = excel_file.parse(excel_file.sheet_names[0])
         
+        #target codes == snomed codes are very sensitive. Need to return str 
+        df['target_code'] = df['target_code'].astype(float).astype(int).astype(str)
+        
         # Find raw_input column
         raw_input_col = None
         for col in df.columns:
