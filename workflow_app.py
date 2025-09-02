@@ -18,9 +18,10 @@ import gc
 import pandas as pd
 import numpy as np
 from flask import Flask, request, jsonify, send_file, render_template
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename, send_from_directory
 from werkzeug.exceptions import RequestEntityTooLarge
 import openpyxl
+import re
 
 # Configure logging
 logging.basicConfig(
@@ -471,6 +472,71 @@ class ClaimsProcessor:
             'good_matches': len(sheets['good_match']),
             'poor_matches': len(sheets['poor_match'])
         }
+
+
+#function to split excel within the hub
+# Function to split excel within the hub - no local file storage
+@app.route('/split-excel', methods=['GET', 'POST'])
+def split_excel():
+    if request.method == 'POST':
+        try:
+            file = request.files.get('file')
+            if not file or file.filename.strip() == '':
+                return render_template('split_excel.html', error="Please choose an Excel file (.xlsx).")
+
+            # Read file directly from memory without saving
+            file_content = BytesIO(file.read())
+            
+            # Read input directly from memory
+            df = pd.read_excel(file_content, engine='openpyxl')
+
+            category_column = 'tariff_type'
+            if category_column not in df.columns:
+                return render_template('split_excel.html', error=f"Column '{category_column}' not found in the uploaded file.")
+
+            sensitive_col = ["target code", "SNOMED CODE", "target_code", "snomed code"]
+            for col in sensitive_col:
+                if col in df.columns:
+                    df[col] = df[col].astype(int).astype(str)
+            
+            unique_categories = pd.Series(df[category_column].unique()).fillna('Unspecified')
+
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d')
+            output_filename = f'classified_{timestamp}_split.xlsx'
+
+            def clean_sheet_name(name: str) -> str:
+                # Excel sheet name rules: max 31 chars, cannot contain : \ / ? * [ ]
+                safe = re.sub(r'[:\\/?*\[\]]', '-', str(name))
+                return (safe or 'Sheet')[:31]
+
+            # Create output file in memory
+            output_buffer = BytesIO()
+            
+            with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
+                # Write ONLY category sheets, drop the category column in each, no index
+                for raw_category in unique_categories:
+                    category = 'Unspecified' if pd.isna(raw_category) else raw_category
+                    subset_df = df[df[category_column].fillna('Unspecified') == category].copy()
+                    # Drop the category column in outputs
+                    if category_column in subset_df.columns:
+                        subset_df.drop(columns=[category_column], inplace=True, errors='ignore')
+                    subset_df.to_excel(writer, sheet_name=clean_sheet_name(str(category)), index=False)
+
+            # Reset buffer position to beginning
+            output_buffer.seek(0)
+
+            # Return file directly to user
+            return send_file(
+                output_buffer,
+                as_attachment=True,
+                download_name=output_filename,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+
+        except Exception as e:
+            return render_template('split_excel.html', error=str(e))
+
+    return render_template('split_excel.html')
 
 
 # Flask routes

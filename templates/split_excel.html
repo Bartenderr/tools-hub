@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Splitter | Automation Tools Hub</title>
+<style>
+  :root{
+    --mint:#9ff5c5;
+    --mint-2:#ccffeb;
+    --forest:#1e5f3a;
+    --forest-2:#2f7b4e;
+    --ink:#1d1f21;
+    --glass:rgba(255,255,255,0.85);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+    min-height:100vh;
+    background: linear-gradient(135deg, var(--mint) 0%, var(--forest-2) 100%);
+    padding:24px;
+  }
+  .container{
+    max-width:1100px;margin:0 auto;
+  }
+  .header{
+    text-align:center;margin-bottom:28px;color:#fff;
+  }
+  .badge-wrap{display:inline-flex;align-items:center;gap:12px}
+  .badge{
+    background:linear-gradient(45deg, #eafff6, var(--mint-2));
+    color:var(--forest);
+    padding:10px 22px;border-radius:999px;
+    font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.15);
+    transform:rotate(-2deg)
+  }
+  .badge-2{
+    background:linear-gradient(45deg, #eaf5ef, #c7ead7);
+    color:var(--forest);
+    padding:8px 18px;border-radius:999px;
+    font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.12);
+    transform:rotate(2deg)
+  }
+  .subtitle{
+    margin-top:14px;font-size:2rem;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.25)
+  }
+
+  .card{
+    background:var(--glass);
+    border-radius:24px;padding:28px;box-shadow:0 16px 40px rgba(0,0,0,.15);
+    backdrop-filter: blur(8px);
+  }
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width: 900px){ .row{grid-template-columns:1fr} }
+
+  .drop{
+    border:2px dashed var(--forest-2);
+    border-radius:20px;padding:28px;text-align:center;transition:.2s;
+    background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.8));
+  }
+  .drop.dragover{background:#f3fff9;border-color:var(--forest)}
+  .drop h3{color:var(--forest);margin-bottom:6px}
+  .drop p{color:#375c48;font-size:.95rem;margin-bottom:14px}
+  .btn{
+    display:inline-block;border:none;outline:none;cursor:pointer;
+    background: linear-gradient(135deg, var(--forest) 0%, var(--forest-2) 100%);
+    color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;
+    box-shadow:0 10px 24px rgba(0,0,0,.18);transition:transform .12s ease, box-shadow .12s ease
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(0,0,0,.22)}
+  .muted{color:#3b6d55}
+
+  .notice{
+    background: linear-gradient(135deg, #e8fff4, #ffffff);
+    border:1px solid #d9f7ea;color:#245a3b;
+    padding:14px 16px;border-radius:14px;margin-bottom:18px;font-size:.95rem
+  }
+  .error{
+    background:#ffecec;border:1px solid #ffb7b7;color:#7a1111;
+    padding:14px 16px;border-radius:14px;margin-top:16px
+  }
+
+  .list{
+    background:rgba(255,255,255,.8);border-radius:18px;padding:18px
+  }
+  .list h4{color:var(--forest);margin-bottom:10px}
+  .list ul{list-style:none}
+  .list li{padding:8px 10px;border-radius:12px}
+  .list li:nth-child(odd){background:#f4fff9}
+  .hint{font-size:.85rem;color:#2e5d43;margin-top:6px}
+
+  .footer{
+    text-align:center;margin-top:30px;color:#eafff6;font-size:.9rem
+  }
+
+  .back-home {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: linear-gradient(135deg, var(--forest) 0%, var(--forest-2) 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0,0,0,.2);
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,0.1);
+  z-index: 1000;
+}
+
+.back-home:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(0,0,0,.25);
+  background: linear-gradient(135deg, var(--forest-2) 0%, var(--mint) 100%);
+  color: var(--forest);
+}
+
+.back-home:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .back-home {
+    top: 15px;
+    left: 15px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}
+</style>
+</head>
+<body>
+  <button class="back-home" onclick="goHome()">🏠 Back to Hub</button>
+  <div class="container">
+    <header class="header">
+      <div class="badge-wrap">
+        <div class="badge">TOOLS</div>
+        <div class="badge-2">HUB</div>
+      </div>
+      <div class="subtitle">Splitter</div>
+    </header>
+
+    <div class="card">
+      <div class="notice">
+        <strong>Privacy:</strong> No PII, files are processed locally and auto-deleted after processing.
+      </div>
+
+      {% if error %}
+      <div class="error">⚠️ {{ error }}</div>
+      {% endif %}
+
+      <div class="row" style="align-items:start;">
+        <form id="uploadForm" action="/split-excel" method="POST" enctype="multipart/form-data" class="drop">
+          <h3>Upload Excel (.xlsx)</h3>
+          <p>We’ll split the workbook into separate sheets by <strong>tariff_type</strong> and exclude that column in each output sheet.</p>
+
+          <input id="fileInput" type="file" name="file" accept=".xlsx" style="display:none" />
+          <button type="button" id="chooseBtn" class="btn">Choose File</button>
+          <span id="fileName" class="muted" style="margin-left:10px;">No file chosen</span>
+
+          <div class="hint">Tip: You can also drag &amp; drop your file here.</div>
+
+          <div style="margin-top:16px;">
+            <button type="submit" class="btn">Split &amp; Generate</button>
+          </div>
+        </form>
+
+        <div class="list">
+          <h4>What you’ll get</h4>
+          <ul>
+            <li>✅ One worksheet per <em>tariff_type</em> value</li>
+            <li>✅ <em>tariff_type</em> column removed from each output sheet</li>
+            <li>✅ No extra “Complete_Dataset” sheet</li>
+            <li>✅ No index column in the output</li>
+            <li>✨ Clean sheet names, safe for Excel</li>
+          </ul>
+          <div class="hint">File is saved as <code>classified_YYYYMMDD_split.xlsx</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Automation Tools Hub — Splitter • Mint &amp; Forest Green
+    </div>
+  
+    <button class="back-home" onclick="goHome()">🏠 Back to Hub</button>
+  </div>
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const fileInput = document.getElementById('fileInput');
+  const chooseBtn = document.getElementById('chooseBtn');
+  const fileName = document.getElementById('fileName');
+
+  // Open file picker
+  chooseBtn.addEventListener('click', () => fileInput.click());
+
+  // Show chosen name
+  fileInput.addEventListener('change', () => {
+    fileName.textContent = fileInput.files?.[0]?.name || 'No file chosen';
+  });
+
+  // Drag & drop
+  form.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    form.classList.add('dragover');
+  });
+  form.addEventListener('dragleave', () => form.classList.remove('dragover'));
+  form.addEventListener('drop', (e) => {
+    e.preventDefault();
+    form.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files;
+      fileName.textContent = e.dataTransfer.files[0].name;
+    }
+  });
+
+    function goHome() {
+      // Add a nice transition effect
+      document.body.style.transition = 'opacity 0.3s ease';
+      document.body.style.opacity = '0.7';
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 200);
+    }
+</script>
+</body>
+</html>

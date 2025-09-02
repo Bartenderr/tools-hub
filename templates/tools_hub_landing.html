@@ -217,6 +217,11 @@
             color: #333;
         }
 
+        .status-checking {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            color: white;
+        }
+
         .floating-elements {
             position: fixed;
             top: 0;
@@ -263,6 +268,64 @@
             50% { transform: translateY(-20px) rotate(180deg); }
         }
 
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-message {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
         .footer {
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
@@ -289,6 +352,27 @@
                 font-size: 2rem;
             }
         }
+
+        .modal-btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+
+.modal-btn-secondary:hover {
+    transform: translateY(-2px);
+}
+
+.modal-content .modal-btn {
+    margin-right: 10px;
+}
     </style>
 </head>
 <body>
@@ -310,8 +394,8 @@
         <div class="notice-board">
             <div class="notice-title">NOTICE BOARD</div>
             <div class="notice-content">
-                <p><strong>Privacy Notice:</strong> Do not include any form of PII (Personal Identifiable Information) in your uploaded files</p>
-                <p><strong>Data Processing:</strong> All files are processed locally and automatically deleted after 5 minutes of inactivity</p>
+                <p><strong>⚠️ Privacy Notice:</strong> Do not include any form of PII (Personal Identifiable Information) in your uploaded files</p>
+                <p><strong>📊 Data Processing:</strong> All files are processed locally and automatically deleted after 5 minutes of inactivity</p>
             </div>
         </div>
 
@@ -320,62 +404,89 @@
                 <div class="tool-icon">📊</div>
                 <div class="tool-title">Standard Workflow</div>
                 <div class="tool-description">Process claims data with tariff matching, quality analysis, and automated classification</div>
-                <div class="tool-status status-ready">Ready to Use</div>
+                <div class="tool-status status-ready">🚀 Ready to Use</div>
             </div>
 
-            <div class="tool-card splitter">
-                <div class="tool-icon">🔄</div>
+            <div class="tool-card splitter" onclick="openSplitter()">
+                <div class="tool-icon">📑</div>
                 <div class="tool-title">Splitter</div>
                 <div class="tool-description">Split large datasets into manageable chunks based on custom criteria and conditions</div>
-                <div class="tool-status status-coming-soon">Coming Soon</div>
+                <div class="tool-status status-ready">🚀 Ready to Use</div>
             </div>
 
+            <div class="tool-card model-matching" onclick="checkModelMatchingEndpoint()">
+                <div class="tool-icon">🤖</div>
+                <div class="tool-title">Model Matching</div>
+                <div class="tool-description">Advanced AI-powered data matching and similarity detection algorithms</div>
+                <div class="tool-status status-ready" id="model-matching-status">🔗 Check Connection</div>
+            </div>
+            
             <div class="tool-card process-items">
                 <div class="tool-icon">📋</div>
                 <div class="tool-title">Process Item List</div>
                 <div class="tool-description">Automated processing and validation of item lists with duplicate detection</div>
-                <div class="tool-status status-coming-soon">Coming Soon</div>
-            </div>
-
-            <div class="tool-card model-matching">
-                <div class="tool-icon">🤖</div>
-                <div class="tool-title">Model Matching</div>
-                <div class="tool-description">Advanced AI-powered data matching and similarity detection algorithms</div>
-                <div class="tool-status status-coming-soon">Coming Soon</div>
+                <div class="tool-status status-coming-soon">🚧 Coming Soon</div>
             </div>
 
             <div class="tool-card diagnosis">
                 <div class="tool-icon">⚕️</div>
                 <div class="tool-title">Diagnosis Processor</div>
                 <div class="tool-description">Analyze and categorize diagnostic data with automated quality checks</div>
-                <div class="tool-status status-coming-soon">Coming Soon</div>
+                <div class="tool-status status-coming-soon">🚧 Coming Soon</div>
             </div>
 
             <div class="tool-card ask-tools">
                 <div class="tool-icon">🎤</div>
-                <div class="tool-title">Ask for A Tools</div>
+                <div class="tool-title">Ask for A Tool</div>
                 <div class="tool-description">Request custom automation tools tailored to your specific workflow needs</div>
-                <div class="tool-status status-coming-soon">Request Feature</div>
+                <div class="tool-status status-coming-soon">💡 Request Feature</div>
             </div>
 
             <div class="tool-card coming-soon">
                 <div class="tool-icon">💡</div>
                 <div class="tool-title">More Tools</div>
                 <div class="tool-description">Additional automation tools are in development. Stay tuned for updates!</div>
-                <div class="tool-status status-coming-soon">In Development</div>
+                <div class="tool-status status-coming-soon">⏳ In Development</div>
             </div>
 
             <div class="tool-card docs" onclick="openDocs()">
                 <div class="tool-icon">📚</div>
                 <div class="tool-title">Documentation</div>
                 <div class="tool-description">Comprehensive guides, tutorials, and API documentation for all tools</div>
-                <div class="tool-status status-ready">Available</div>
+                <div class="tool-status status-ready">📖 Available</div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Automation Tools Hub | Streamlining Data Processing Workflows</p>
-            <p>Built with ❤️ for Data Analysts and Teams</p>
+            <p>Streamlining Data Processing Workflows</p>
+            <p>Built with ❤️ </p>
+        </div>
+    </div>
+
+    <!-- Modal for offline endpoint -->
+    <div id="offlineModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">🔌</div>
+            <div class="modal-title">Service Offline</div>
+            <div class="modal-message">
+                Model Matching service is not currently online.<br><br>
+                <strong>Contact your administrator to expose this endpoint</strong>
+            </div>
+            <button class="modal-btn" onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- Link Modal for popup-blocked scenarios -->
+    <div id="linkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">🌐</div>
+            <div class="modal-title">Service Online</div>
+            <div class="modal-message">
+                Model Matching service is online!<br><br>
+                <strong>Click below to open in new tab:</strong>
+            </div>
+            <button class="modal-btn" id="openLinkBtn" onclick="openDirectLink()">🚀 Open Model Matching</button>
+            <button class="modal-btn-secondary" onclick="closeLinkModal()">Cancel</button>
         </div>
     </div>
 
@@ -384,12 +495,121 @@
             window.location.href = '/standard-workflow';
         }
 
+        function openSplitter() {
+            window.location.href = '/split-excel';
+        }
+
         function openDocs() {
             alert('📚 Opening Documentation...\n\nThis would open the comprehensive documentation portal.');
         }
 
+        async function checkModelMatchingEndpoint() {
+            const statusElement = document.getElementById('model-matching-status');
+            const targetUrl = 'https://immortal-raven-ruling.ngrok-free.app/';
+            
+            // Update status to show checking
+            statusElement.textContent = '🔄 Checking...';
+            statusElement.className = 'tool-status status-checking';
+            
+            try {
+                // Use fetch with a timeout to check if the endpoint is online
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const response = await fetch(targetUrl, {
+                    method: 'HEAD', // Use HEAD to minimize data transfer
+                    mode: 'no-cors', // Handle CORS issues
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                // If we get here without throwing, the endpoint is reachable
+                statusElement.textContent = '✅ Online';
+                statusElement.className = 'tool-status status-ready';
+                
+                // Redirect to the endpoint
+                window.open(targetUrl, '_blank');
+                
+            } catch (error) {
+                // Endpoint is offline or unreachable
+                statusElement.textContent = '❌ Offline';
+                statusElement.className = 'tool-status status-coming-soon';
+                
+                // Show offline modal
+                showOfflineModal();
+            }
+        }
+
+        function showOfflineModal() {
+            document.getElementById('offlineModal').style.display = 'block';
+        }
+
+        function closeModal() {
+    document.getElementById('offlineModal').style.display = 'none';
+    // Reset status after modal closes
+    setTimeout(() => {
+        const statusElement = document.getElementById('model-matching-status');
+        statusElement.textContent = '🔗 Check Connection';
+        statusElement.className = 'tool-status status-ready';
+    }, 500);
+}
+
+        let currentTargetUrl = '';
+
+        function showLinkModal(url) {
+            currentTargetUrl = url;
+            document.getElementById('linkModal').style.display = 'block';
+        }
+
+        function closeLinkModal() {
+            document.getElementById('linkModal').style.display = 'none';
+            currentTargetUrl = '';
+            // Reset status
+            setTimeout(() => {
+                const statusElement = document.getElementById('model-matching-status');
+                statusElement.textContent = '🔗 Check Connection';
+                statusElement.className = 'tool-status status-ready';
+            }, 500);
+        }
+
+        function openDirectLink() {
+            if (currentTargetUrl) {
+                // Try to open again
+                const newWindow = window.open(currentTargetUrl, '_blank', 'noopener,noreferrer');
+                if (newWindow) {
+                    closeLinkModal();
+                } else {
+                    // Still blocked, provide manual link
+                    alert('Please allow popups for this site, or manually visit:\n' + currentTargetUrl);
+                }
+            }
+        }
+
+        // Close modal when clicking outside - Updated to handle both modals
+        window.onclick = function(event) {
+            const offlineModal = document.getElementById('offlineModal');
+            const linkModal = document.getElementById('linkModal');
+            
+            if (event.target === offlineModal) {
+                closeModal();
+            }
+            if (event.target === linkModal) {
+                closeLinkModal();
+            }
+        }
+
+        // Add hover sound effects (optional)
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Optional: Add hover sound effect
+            });
+        });
+
+        // Add click animations
         document.querySelectorAll('.tool-card').forEach(card => {
             card.addEventListener('click', function(e) {
+                // Create ripple effect
                 const ripple = document.createElement('div');
                 const rect = this.getBoundingClientRect();
                 const size = Math.max(rect.width, rect.height);
@@ -418,6 +638,7 @@
             });
         });
 
+        // Add CSS animation for ripple effect
         const style = document.createElement('style');
         style.textContent = `
             @keyframes ripple {
