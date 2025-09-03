@@ -497,7 +497,7 @@ def split_excel():
             sensitive_col = ["target code", "SNOMED CODE", "target_code", "snomed code"]
             for col in sensitive_col:
                 if col in df.columns:
-                    df[col] = df[col].astype(int).astype(str)
+                    df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64").astype(str)
             
             unique_categories = pd.Series(df[category_column].unique()).fillna('Unspecified')
 
