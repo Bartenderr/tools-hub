@@ -24,11 +24,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY workflow_app.py .
-COPY templates/ templates/
+COPY . .
 
 # Create necessary directories and set permissions
-RUN mkdir -p /app/logs && \
+RUN mkdir -p /app/logs /app/uploads && \
     chown -R appuser:appuser /app && \
     chmod -R 755 /app
 
@@ -40,7 +39,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:5000/api/health')" || exit 1
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8030
 
 # Run the application with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "120", "--max-requests", "1000", "--max-requests-jitter", "100", "workflow_app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8030", "--workers", "2", "--threads", "4", "--timeout", "120", "--max-requests", "1000", "--max-requests-jitter", "100", "--reload", "app:create_app()"]
