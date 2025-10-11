@@ -156,6 +156,11 @@
             color: white;
         }
 
+        .excel-consolidator .tool-icon {
+            background: linear-gradient(135deg, #FF1B6B 0%, #FFC837 100%);
+            color: white;
+        }
+
         .process-items .tool-icon {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
@@ -414,6 +419,13 @@
                 <div class="tool-status status-ready">🚀 Ready to Use</div>
             </div>
 
+            <div class="tool-card excel-consolidator" onclick="window.location.href='/excel-consolidator'">
+                <div class="tool-icon">📊</div>
+                <div class="tool-title">Excel Consolidator</div>
+                <div class="tool-description">Consolidate multiple Excel files with intelligent column mapping and duplicate removal</div>
+                <div class="tool-status status-ready">🚀 Ready to Use</div>
+            </div>
+
             <div class="tool-card model-matching" onclick="checkModelMatchingEndpoint()">
                 <div class="tool-icon">🤖</div>
                 <div class="tool-title">Model Matching</div>
@@ -421,11 +433,11 @@
                 <div class="tool-status status-ready" id="model-matching-status">🔗 Check Connection</div>
             </div>
             
-            <div class="tool-card process-items">
+            <div class="tool-card process-items" onclick="window.location.href='/process-diagnosis'">
                 <div class="tool-icon">📋</div>
                 <div class="tool-title">Process Item List</div>
                 <div class="tool-description">Automated processing and validation of item lists with duplicate detection</div>
-                <div class="tool-status status-coming-soon">🚧 Coming Soon</div>
+                <div class="tool-status status-ready">🛩️ Ready to Use</div>
             </div>
 
             <div class="tool-card diagnosis">
