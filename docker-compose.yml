@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  tools-hub:
+    build: .
+    container_name: tools-hub
+    ports:
+      - "8030:8030"
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SECRET_KEY=your-secret-key-change-in-production
+      - MAX_CONTENT_LENGTH=3145728  # 3MB in bytes
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8030/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - tools-network
+
+networks:
+  tools-network:
+    driver: bridge

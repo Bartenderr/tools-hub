@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Processor | Automation Tools Hub</title>
+    <style>
+        :root {
+            --hot-pink: #FF1B6B;
+            --vibrant-yellow: #FFC837;
+            --accent-orange: #FF6B2B;
+            --accent-blue: #45B7FF;
+            --accent-gray: #E0E0E0;
+            --ink: #1d1f21;
+            --glass: rgba(255,255,255,0.95);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, var(--hot-pink) 0%, var(--vibrant-yellow) 100%);
+            padding: 24px;
+            color: var(--ink);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            color: #fff;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-card {
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+            backdrop-filter: blur(8px);
+            margin-bottom: 24px;
+        }
+        
+        .upload-zone {
+            border: 3px dashed var(--forest-2);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.8));
+            margin-bottom: 24px;
+        }
+        
+        .upload-zone.dragover {
+            background: var(--mint-2);
+            border-color: var(--forest);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--forest);
+            margin-bottom: 16px;
+        }
+        
+        .upload-title {
+            font-size: 1.4rem;
+            color: var(--forest);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .upload-description {
+            color: var(--forest-2);
+            margin-bottom: 24px;
+        }
+        
+        .btn {
+            background: var(--accent-orange);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background: #ff824d;
+        }
+
+        .processing-options {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px dashed rgba(0,0,0,0.1);
+        }
+
+        .select-wrapper {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .select-wrapper label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .claim-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .claim-select:hover {
+            border-color: var(--hot-pink);
+        }
+
+        .process-btn {
+            background: var(--accent-blue);
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .process-btn:hover {
+            background: #5cc2ff;
+        }
+
+        .progress-container {
+            margin-top: 24px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--accent-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, var(--hot-pink), var(--accent-blue));
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--ink);
+            text-align: center;
+        }
+        
+        .preview-section {
+            display: none;
+        }
+        
+        .preview-select-wrapper {
+            margin-bottom: 20px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .preview-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--hot-pink);
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23FF1B6B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .preview-select:hover {
+            border-color: var(--accent-blue);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2345B7FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+        
+        .preview-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .preview-table th {
+            background: var(--mint-2);
+            color: var(--forest);
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .preview-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .preview-expand {
+            text-align: center;
+            margin-top: 12px;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .back-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, var(--forest) 0%, var(--forest-2) 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.error {
+            background: #ff6b6b;
+        }
+        
+        .toast.success {
+            background: var(--forest);
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .upload-zone {
+                padding: 20px;
+            }
+            
+            .download-buttons {
+                flex-direction: column;
+            }
+            
+            .back-home {
+                top: 10px;
+                left: 10px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-home" onclick="goHome()">🏠 Back to Hub</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Diagnosis Processor</h1>
+            <p>Process and structure your diagnosis data</p>
+        </div>
+        
+        <div class="main-card">
+                        <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📋</div>
+                <h2 class="upload-title">Upload Diagnosis Data</h2>
+                <p class="upload-description">
+                    Drop your file here or click to browse
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.csv">
+                <button class="btn upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p id="fileName" style="margin-top: 12px; color: var(--ink);"></p>
+
+                <div class="processing-options" style="display: none;" id="processingOptions">
+                    <div class="select-wrapper">
+                        <label for="claimRepresentation">Select Claim Representation:</label>
+                        <select id="claimRepresentation" class="claim-select">
+                            <option value="standard">Standard Format</option>
+                            <option value="detailed">Detailed View</option>
+                            <option value="summary">Summary View</option>
+                            <option value="compact">Compact Format</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn process-btn" onclick="startProcessing()">
+                        Start Processing
+                    </button>
+
+                    <div class="progress-container" style="display: none;" id="progressContainer">
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                        <p class="progress-text" id="progressText">Processing... 0%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="previewSection" class="preview-section">
+                <div class="preview-select-wrapper">
+                    <select id="previewSelect" class="preview-select" onchange="switchView(this.value)">
+                    </select>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <table class="preview-table" id="previewTable"></table>
+                    <div class="preview-expand">
+                        <button class="btn" onclick="toggleExpandPreview()">Show More Rows</button>
+                    </div>
+                </div>
+                <div class="download-buttons">
+                    <button class="btn" onclick="downloadFile('txt')">📄 Download Diagnosis List (TXT)</button>
+                    <button class="btn" onclick="downloadFile('excel')">📊 Download Processed Data (Excel)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+    
+    <script>
+        let currentProcessId = null;
+        let previewData = null;
+        let currentTab = null;
+        let showingExpandedPreview = false;
+        
+        // File upload handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleFile(file);
+        });
+        
+        function handleFile(file) {
+            if (!file) return;
+            
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('processingOptions').style.display = 'block';
+            
+            // Store the file for later processing
+            window.selectedFile = file;
+        }
+
+        function startProcessing() {
+            if (!window.selectedFile) {
+                showToast('Please select a file first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', window.selectedFile);
+            formData.append('representation', document.getElementById('claimRepresentation').value);
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            progressContainer.style.display = 'block';
+            
+            // Simulate progress while actually uploading
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) {
+                    clearInterval(interval);
+                }
+                const currentProgress = Math.min(progress, 90);
+                progressBar.style.width = `${currentProgress}%`;
+                progressText.textContent = `Processing... ${Math.round(currentProgress)}%`;
+            }, 500);
+
+            uploadFile(formData).then(() => {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Processing Complete!';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            }).catch(() => {
+                clearInterval(interval);
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Processing Failed';
+                progressContainer.style.display = 'none';
+            });
+        }
+        
+        async function uploadFile(formData) {
+            try {
+                const response = await fetch('/process-diagnosis/api/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+                
+                currentProcessId = data.process_id;
+                checkStatus();
+                
+            } catch (error) {
+                showToast('Upload failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkStatus() {
+            if (!currentProcessId) return;
+            
+            try {
+                const response = await fetch(`/process-diagnosis/api/status/${currentProcessId}`);
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    showToast(data.error, 'error');
+                } else if (data.status === 'completed') {
+                    showToast('Processing completed!', 'success');
+                    previewData = data.preview_data;
+                    showPreview();
+                } else {
+                    setTimeout(checkStatus, 1000);
+                }
+                
+            } catch (error) {
+                showToast('Status check failed: ' + error.message, 'error');
+            }
+        }
+        
+        function showPreview() {
+            const previewSection = document.getElementById('previewSection');
+            const previewSelect = document.getElementById('previewSelect');
+            
+            previewSection.style.display = 'block';
+            previewSelect.innerHTML = '';
+            
+            // Create dropdown options
+            Object.keys(previewData).forEach((sheetName, index) => {
+                const option = document.createElement('option');
+                option.value = sheetName;
+                option.textContent = sheetName;
+                previewSelect.appendChild(option);
+            });
+            
+            // Show first view
+            currentTab = Object.keys(previewData)[0];
+            showTabContent(currentTab);
+        }
+        
+        function switchView(viewName) {
+            currentTab = viewName;
+            showingExpandedPreview = false;
+            showTabContent(viewName);
+        }
+        
+        function showTabContent(tabName) {
+            const table = document.getElementById('previewTable');
+            const data = previewData[tabName];
+            
+            if (!data || !data.length) {
+                table.innerHTML = '<tr><td>No data available</td></tr>';
+                return;
+            }
+            
+            const columns = Object.keys(data[0]);
+            const rowsToShow = showingExpandedPreview ? data.length : Math.min(10, data.length);
+            
+            let html = '<thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            for (let i = 0; i < rowsToShow; i++) {
+                html += '<tr>';
+                columns.forEach(col => {
+                    html += `<td>${data[i][col] || ''}</td>`;
+                });
+                html += '</tr>';
+            }
+            
+            html += '</tbody>';
+            table.innerHTML = html;
+        }
+        
+        function toggleExpandPreview() {
+            showingExpandedPreview = !showingExpandedPreview;
+            showTabContent(currentTab);
+            
+            const expandBtn = document.querySelector('.preview-expand .btn');
+            expandBtn.textContent = showingExpandedPreview ? 'Show Less' : 'Show More Rows';
+        }
+        
+        async function downloadFile(fileType) {
+            if (!currentProcessId) return;
+            
+            try {
+                window.location.href = `/process-diagnosis/api/download/${currentProcessId}/${fileType}`;
+            } catch (error) {
+                showToast('Download failed: ' + error.message, 'error');
+            }
+        }
+        
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

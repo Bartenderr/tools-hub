@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Consolidator | Automation Tools Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B1538, #D4526B);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8B1538;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #8B1538, #B73E56);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .upload-area {
+            border: 3px dashed #8B1538;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin: 30px 0;
+            background: linear-gradient(135deg, rgba(139, 21, 56, 0.1), rgba(212, 82, 107, 0.1));
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #B73E56;
+            background: linear-gradient(135deg, rgba(139, 21, 56, 0.2), rgba(212, 82, 107, 0.2));
+            transform: translateY(-2px);
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            color: #8B1538;
+            margin-bottom: 15px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #8B1538, #B73E56);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(139, 21, 56, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(139, 21, 56, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .file-list {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(139, 21, 56, 0.1);
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #8B1538;
+            font-size: 14px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(139, 21, 56, 0.2);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #8B1538, #B73E56);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            display: none;
+        }
+        
+        .success { color: #4A7C59; }
+        .error { color: #C62D42; }
+        .warning { color: #D68910; }
+        
+        .download-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(74, 124, 89, 0.1), rgba(74, 124, 89, 0.2));
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin: 5px;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B1538;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .back-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #8B1538, #B73E56);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+
+        .back-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <button class="back-home" onclick="window.location.href='/'">🏠 Back to Hub</button>
+    
+    <div class="container">
+        <h1>📊 Excel Consolidator</h1>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <h3>Click to Select Excel Files</h3>
+                <p>Select multiple .xlsx or .xls files</p>
+                <input type="file" id="fileInput" name="files[]" multiple accept=".xlsx,.xls">
+            </div>
+        </form>
+        
+        <div id="fileList" class="file-list" style="display: none;"></div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button id="processBtn" class="btn" onclick="processFiles()" disabled>
+                🔄 Process Files
+            </button>
+        </div>
+        
+        <div id="progressBar" class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        
+        <div id="results" class="results"></div>
+        
+        <div id="downloadSection" class="download-section">
+            <div class="stats" id="stats"></div>
+            <button id="downloadBtn" class="btn" onclick="downloadFile()">
+                💾 Download Consolidated Excel
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+        let processedData = null;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            displayFileList();
+            document.getElementById('processBtn').disabled = selectedFiles.length === 0;
+        });
+
+        function displayFileList() {
+            const fileList = document.getElementById('fileList');
+            if (selectedFiles.length > 0) {
+                fileList.style.display = 'block';
+                fileList.innerHTML = `
+                    <h4>Selected Files (${selectedFiles.length}):</h4>
+                    ${selectedFiles.map(file => 
+                        `<div class="file-item">📄 ${file.name}</div>`
+                    ).join('')}
+                `;
+            } else {
+                fileList.style.display = 'none';
+            }
+        }
+
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                alert('Please select files first!');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('files[]', file));
+
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').innerHTML = '🚀 Starting file processing...\n\n';
+
+            try {
+                const response = await fetch('/excel-consolidator/process', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                document.getElementById('progressFill').style.width = '100%';
+                
+                if (response.ok) {
+                    document.getElementById('results').innerHTML = result.log.join('\n');
+                    
+                    if (result.success) {
+                        processedData = result;
+                        showDownloadSection(result.stats);
+                    }
+                } else {
+                    document.getElementById('results').innerHTML += '\n❌ ' + result.detail;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML += '\n❌ Error: ' + error.message;
+            } finally {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        function showDownloadSection(stats) {
+            const downloadSection = document.getElementById('downloadSection');
+            const statsDiv = document.getElementById('stats');
+            
+            statsDiv.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${stats.total_rows}</div>
+                    <div class="stat-label">Total Rows</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.files_processed}</div>
+                    <div class="stat-label">Files Processed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.duplicates_removed}</div>
+                    <div class="stat-label">Duplicates Removed</div>
+                </div>
+            `;
+            
+            downloadSection.style.display = 'block';
+        }
+
+        async function downloadFile() {
+            if (!processedData) {
+                alert('No processed data available!');
+                return;
+            }
+
+            try {
+                window.location.href = '/excel-consolidator/download';
+            } catch (error) {
+                alert('Error downloading file: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
