@@ -81,6 +81,84 @@ class FileValidator:
             return False, f"Error reading Excel file: {str(e)}", None
 
     # Include all other FileValidator methods here...
+    @staticmethod
+    def _validate_tariff_file(excel_file) -> Tuple[bool, str, Optional[pd.DataFrame]]:
+        """Validate original tariff file structure"""
+        try:
+            # Check if there are sheets other than SUMMARY
+            valid_sheets = [sheet for sheet in excel_file.sheet_names if sheet != 'SUMMARY']
+            if not valid_sheets:
+                return False, "No valid tariff sheets found (excluding SUMMARY)", None
+            
+            # Check first valid sheet for TARIFF NAME column
+            first_sheet = excel_file.parse(valid_sheets[0])
+            tariff_name_col = None
+            
+            # Look for TARIFF NAME column (flexible naming)
+            for col in first_sheet.columns:
+                if 'tariff' in col.lower() and 'name' in col.lower():
+                    tariff_name_col = col
+                    break
+            
+            if tariff_name_col is None:
+                return False, "TARIFF NAME column not found in tariff sheets", None
+            
+            # Check data quality
+            empty_ratio = first_sheet[tariff_name_col].isna().sum() / len(first_sheet)
+            if empty_ratio >= 0.2:
+                return False, f"Too many empty values in TARIFF NAME column ({empty_ratio:.1%})", None
+            elif empty_ratio > 0.05:
+                logger.warning(f"Some empty values in TARIFF NAME column ({empty_ratio:.1%})")
+            
+            return True, "Valid tariff file", first_sheet
+            
+        except Exception as e:
+            return False, f"Error validating tariff file: {str(e)}", None
+
+    @staticmethod
+    def _validate_claims_file(excel_file) -> Tuple[bool, str, Optional[pd.DataFrame]]:
+        """Validate claims export file structure"""
+        try:
+            # Assume single sheet or first sheet
+            df = excel_file.parse(excel_file.sheet_names[0])
+            
+            # Look for required columns
+            required_cols = {
+            'claim_text': 'Claim Text',
+            'submission_date': 'Submission Date'
+        }
+            
+            # Validate presence
+            missing = [v for v in required_cols.values() if v not in df.columns]
+            if missing:
+                return False, f"Missing required columns: {missing}", None
+            
+            return True, "Validation successful", df
+                
+        except Exception as e:
+            return False, f"Error validating claims file: {str(e)}", None
+    
+    @staticmethod
+    def _validate_ds_output_file(excel_file) -> Tuple[bool, str, Optional[pd.DataFrame]]:
+        """Validate data science output file structure"""
+        try:
+            # Assume single sheet or first sheet
+            df = excel_file.parse(excel_file.sheet_names[0])
+            
+            # Look for raw_input column
+            raw_input_col = None
+            for col in df.columns:
+                if 'raw' in col.lower() and 'input' in col.lower():
+                    raw_input_col = col
+                    break
+            
+            if raw_input_col is None:
+                return False, "raw_input column not found", None
+            
+            return True, "Valid DS output file", df
+            
+        except Exception as e:
+            return False, f"Error validating DS output file: {str(e)}", None
 
 class ClaimsProcessor:
     """Main processing engine for claims data"""
@@ -99,6 +177,271 @@ class ClaimsProcessor:
             self.progress_callback(progress, step)
     
     # Include all other ClaimsProcessor methods here...
+    def process_claims_data(self, original_tariff_content: bytes, 
+                          claims_content: bytes, 
+                          ds_output_content: bytes) -> Dict[str, Any]:
+        """
+        Main processing function that merges and analyzes the three input files
+        """
+        try:
+            self._update_progress(10, "Loading original tariff...")
+            current_tariff = self._process_original_tariff(original_tariff_content)
+            
+            self._update_progress(30, "Processing claims export...")
+            clean_met_df = self._process_claims_export(claims_content)
+            
+            self._update_progress(50, "Loading DS model output...")
+            ds_output = self._process_ds_output(ds_output_content)
+            
+            self._update_progress(70, "Merging datasets...")
+            merged_df = self._merge_datasets(current_tariff, clean_met_df, ds_output)
+            
+            self._update_progress(85, "Calculating match percentages...")
+            final_df = self._apply_business_logic(merged_df)
+            
+            self._update_progress(95, "Creating output files...")
+            result_sheets = self._create_output_sheets(final_df)
+            
+            self._update_progress(100, "Processing complete!")
+            
+            return {
+                'success': True,
+                'sheets': result_sheets,
+                'statistics': self._calculate_statistics(result_sheets)
+            }
+            
+        except Exception as e:
+            logger.error(f"Processing error: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _process_original_tariff(self, content: bytes) -> pd.DataFrame:
+        """Process original tariff file"""
+        excel_file = pd.ExcelFile(BytesIO(content))
+        full_tariff = []
+        
+        for sheet_name in excel_file.sheet_names:
+            if sheet_name != 'SUMMARY':
+                df = excel_file.parse(sheet_name)
+                
+                # Find TARIFF NAME column
+                tariff_name_col = None
+                for col in df.columns:
+                    if 'tariff' in col.lower() and 'name' in col.lower():
+                        tariff_name_col = col
+                        break
+                
+                if tariff_name_col:
+                    df['tariff_type'] = sheet_name
+                    df['TARIFF NAME'] = df[tariff_name_col].str.lower()
+                    df['curry'] = 1
+                    full_tariff.append(df)
+        
+        if not full_tariff:
+            raise ValueError("No valid tariff sheets found")
+        
+        return pd.concat(full_tariff, ignore_index=True)
+    
+    def _process_claims_export(self, content: bytes) -> pd.DataFrame:
+        """Process claims export file"""
+        excel_file = pd.ExcelFile(BytesIO(content))
+        df = excel_file.parse(excel_file.sheet_names[0])
+        
+        # Find required columns
+        col_mapping = {}
+        for col in df.columns:
+            col_lower = col.lower().replace(' ', '_')
+            if 'claim' in col_lower and 'text' in col_lower:
+                col_mapping['Claim Text'] = col
+            elif 'submission' in col_lower and 'date' in col_lower:
+                col_mapping['Submission Date'] = col
+            elif 'unit' in col_lower and 'price' in col_lower:
+                col_mapping['Unit Price'] = col
+            elif 'encounter' in col_lower:
+                col_mapping['Encountered At'] = col
+        
+        # Rename columns for consistency
+        df = df.rename(columns={v: k for k, v in col_mapping.items()})
+        
+        # Sort by submission date and deduplicate
+        if 'Submission Date' in df.columns:
+            df = df.sort_values(by='Submission Date').reset_index(drop=True)
+        
+        # Deduplicate by Claim Text, keeping the last occurrence
+        df_deduplicated = df.drop_duplicates(subset=["Claim Text"], keep="last")
+        
+        # Select relevant columns
+        columns_to_keep = ['Claim Text']
+        for col in ['Submission Date', 'Unit Price', 'Encountered At']:
+            if col in df_deduplicated.columns:
+                columns_to_keep.append(col)
+        
+        return df_deduplicated[columns_to_keep]
+    
+    def _process_ds_output(self, content: bytes) -> pd.DataFrame:
+        """Process data science model output file"""
+        excel_file = pd.ExcelFile(BytesIO(content))
+        df = excel_file.parse(excel_file.sheet_names[0])
+        
+        #target codes == snomed codes are very sensitive. Need to return str 
+        df['target_code'] = df['target_code'].astype(float).astype(int).astype(str)
+        
+        # Find raw_input column
+        raw_input_col = None
+        for col in df.columns:
+            if 'raw' in col.lower() and 'input' in col.lower():
+                raw_input_col = col
+                break
+        
+        if raw_input_col and raw_input_col != 'raw_input':
+            df = df.rename(columns={raw_input_col: 'raw_input'})
+        
+        return df
+    
+    def _merge_datasets(self, tariff_df: pd.DataFrame, 
+                       claims_df: pd.DataFrame, 
+                       ds_df: pd.DataFrame) -> pd.DataFrame:
+        """Merge the three datasets"""
+        
+        tariff_df['tariff_name_key'] = tariff_df['TARIFF NAME'].astype(str).map(str.lower)
+        ds_df['raw_input_key'] = ds_df['raw_input'].astype(str).map(str.lower)
+        claims_df['claim_text_key'] = claims_df['Claim Text'].astype(str).map(str.lower)
+                
+        # First merge: tariff with DS output
+        logger.debug(f"Merging tariff ({len(tariff_df)}) with DS output ({len(ds_df)})")
+        merged_1 = pd.merge(
+            tariff_df,
+            ds_df,
+            left_on='tariff_name_key',
+            right_on='raw_input_key',
+            how='left'
+        )
+        logger.debug(f"First merge result: {merged_1.shape}")
+        
+        # Clean up the merge key column
+        if 'key_0' in merged_1.columns:
+            merged_1 = merged_1.drop(columns=['key_0'])
+        
+        # Second merge: result with claims
+        logger.debug(f"Merging merged_1 with claims ({len(claims_df)})")
+        merged_2 = pd.merge(
+            merged_1,
+            claims_df,
+            left_on='tariff_name_key',
+            right_on='claim_text_key',
+            how='left'
+        )
+        logger.debug(f"Final merged result: {merged_2.shape}")
+        
+        # Clean up the merge key column
+        if 'key_0' in merged_2.columns:
+            merged_2 = merged_2.drop(columns=['key_0'])
+        
+        return merged_2
+    
+    def _apply_business_logic(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply business logic and create mapping codes"""
+        
+        # Create found in 1 year indicator
+        df['1_y'] = np.where(df['Claim Text'].notna(), 1, 0)
+        
+        # Sort by priority
+        df = df.sort_values(
+            by=['curry', 'tariff_active', '1_y', 'match_percent'], 
+            ascending=False
+        ).reset_index(drop=True)
+        
+        # Create mapping codes
+        df['mapping_code'] = df.apply(self._build_mapping_code, axis=1)
+        
+        # Create mapping descriptions
+        mapping_descriptions = {
+            '11G1Y': 'current, tariffactive6month, goodmatch, found in 1year',
+            '11B1Y': 'current, tariffactive6month, badmatch, found in 1year',
+            '11G0Y': 'current, tariffactive6month, goodmatch, not found in 1 year',
+            '11B0Y': 'current, tariffactive6month, badmatch, not found in 1year',
+            '10G1Y': 'current, not in tariffactive 6month, goodmatch, found in 1year',
+            '10B1Y': 'current, not in tariffactive 6month, badmatch, found in 1year',
+            '10G0Y': 'current, not in tariffactive 6month, goodmatch, not found in 1year',
+            '10B0Y': 'current, not in tariffactive 6month, badmatch, not found in 1year',
+            '1NN1Y': 'current, not in model output, not semi-standardized, found in 1year',
+            '1NN0Y': 'current, not in model output, not semi-standardized, not found in 1year'
+        }
+        
+        df['mapping_description'] = df['mapping_code'].map(mapping_descriptions).fillna('Unknown mapping code')
+        
+        # Clean up unwanted columns
+        cols_to_drop = [col for col in df.columns if col in [
+            'Unnamed: 0', 's/n', 'median_price', 'tariff_type', 'location_ref',
+            'matched_tariff', 'provider_type_name', 'input', 'Encountered At',
+            'Submission Date', 'Unit Price', 'Claim Text', 'claim_text_key', 'tariff_name_key'
+        ]]
+        
+        if cols_to_drop:
+            df = df.drop(columns=cols_to_drop)
+        
+        df.rename(columns={"tariff_type_x":"tariff_type"}, inplace=True)
+        
+        return df
+    
+    def _build_mapping_code(self, row) -> str:
+        """Build mapping code for a single row"""
+        code_parts = []
+        
+        # Current: curry column
+        code_parts.append('1' if row.get('curry') == 1 else '0')
+        
+        # Tariff Active (6 month): tariff_active column
+        if pd.isna(row.get('tariff_active')):
+            code_parts.append('N')
+        elif row.get('tariff_active') == 1:
+            code_parts.append('1')
+        else:
+            code_parts.append('0')
+        
+        # Match Quality: match_percent column
+        if pd.isna(row.get('match_percent')):
+            code_parts.append('N')
+        elif row.get('match_percent', 0) >= self.match_threshold:
+            code_parts.append('G')
+        else:
+            code_parts.append('B')
+        
+        # Found in 1 year: 1_y column
+        code_parts.append('1Y' if row.get('1_y') == 1 else '0Y')
+        
+        return ''.join(code_parts)
+    
+    def _create_output_sheets(self, df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+        """Create the three output sheets"""
+        
+        # Good match sheet
+        good_match_df = df[df['mapping_description'].str.contains('good', case=False, na=False)].copy()
+        
+        # Poor match sheet
+        poor_match_condition = (
+            df['mapping_description'].str.contains('bad', case=False, na=False) |
+            df['mapping_description'].str.contains('not semi-standardized', case=False, na=False)
+        )
+        poor_match_df = df[poor_match_condition].copy()
+        
+        return {
+            'good_match': good_match_df,
+            'poor_match': poor_match_df,
+            'full_data': df
+        }
+    
+    def _calculate_statistics(self, sheets: Dict[str, pd.DataFrame]) -> Dict[str, int]:
+        """Calculate processing statistics"""
+        return {
+            'total_records': len(sheets['full_data']),
+            'good_matches': len(sheets['good_match']),
+            'poor_matches': len(sheets['poor_match'])
+        }
+
+
 
 def create_workflow_app():
     """Create the workflow application blueprint"""

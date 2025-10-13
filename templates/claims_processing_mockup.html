@@ -552,7 +552,7 @@
 
             try {
                 // Start processing
-                const response = await fetch('/api/process-claims', {
+                const response = await fetch('/standard-workflow/api/process-claims', {
                     method: 'POST',
                     body: formData
                 });
@@ -583,7 +583,7 @@
             if (!currentProcessId) return;
 
             try {
-                const response = await fetch(`/api/processing-status/${currentProcessId}`);
+                const response = await fetch(`/standard-workflow/api/processing-status/${currentProcessId}`);
                 if (!response.ok) {
                     throw new Error('Failed to check progress');
                 }
@@ -673,7 +673,7 @@
             }
 
             try {
-                const response = await fetch(`/api/download/${currentProcessId}?sheet=${type}&filename=${encodeURIComponent(filename)}`);
+                const response = await fetch(`/standard-workflow/api/download/${currentProcessId}?sheet=${type}&filename=${encodeURIComponent(filename)}`);
                 
                 if (!response.ok) {
                     const errorData = await response.json();
