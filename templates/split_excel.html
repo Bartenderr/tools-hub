@@ -155,7 +155,7 @@
       {% endif %}
 
       <div class="row" style="align-items:start;">
-        <form id="uploadForm" action="/split-excel" method="POST" enctype="multipart/form-data" class="drop">
+        <form id="uploadForm" class="drop">
           <h3>Upload Excel (.xlsx)</h3>
           <p>We’ll split the workbook into separate sheets by <strong>tariff_type</strong> and exclude that column in each output sheet.</p>
 
@@ -165,8 +165,10 @@
 
           <div class="hint">Tip: You can also drag &amp; drop your file here.</div>
 
+          <div id="errorBox" class="error" style="display:none; margin-top:12px;"></div>
+
           <div style="margin-top:16px;">
-            <button type="submit" class="btn">Split &amp; Generate</button>
+            <button type="submit" id="submitBtn" class="btn">Split &amp; Generate</button>
           </div>
         </form>
 
@@ -196,6 +198,8 @@
   const fileInput = document.getElementById('fileInput');
   const chooseBtn = document.getElementById('chooseBtn');
   const fileName = document.getElementById('fileName');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorBox = document.getElementById('errorBox');
 
   // Open file picker
   chooseBtn.addEventListener('click', () => fileInput.click());
@@ -220,15 +224,74 @@
     }
   });
 
-    function goHome() {
-      // Add a nice transition effect
-      document.body.style.transition = 'opacity 0.3s ease';
-      document.body.style.opacity = '0.7';
-      
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 200);
+  // Submit via fetch → receive base64 JSON → download client-side
+  // This avoids the "unsafe download" browser warning on remote HTTP servers
+  // because no binary file is ever sent as an HTTP response body.
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+
+    if (!fileInput.files || !fileInput.files[0]) {
+      showError('Please choose an Excel file (.xlsx).');
+      return;
     }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing…';
+
+    try {
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      // Using trailing slash to match Flask Blueprint route precisely
+      const response = await fetch('/split-excel/', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Server returned an error without details (' + response.status + ')' }));
+        showError(errorData.error || `Server Error: ${response.status}`);
+        return;
+      }
+
+      const data = await response.json();
+
+      // Decode base64 → Blob → download without touching the network again
+      const binary = atob(data.file);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      showError('Unexpected error: ' + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Split & Generate';
+    }
+  });
+
+  function showError(msg) {
+    errorBox.textContent = '⚠️ ' + msg;
+    errorBox.style.display = 'block';
+  }
+
+  function goHome() {
+    document.body.style.transition = 'opacity 0.3s ease';
+    document.body.style.opacity = '0.7';
+    setTimeout(() => { window.location.href = '/'; }, 200);
+  }
 </script>
 </body>
 </html>

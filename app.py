@@ -47,6 +47,11 @@ def create_app():
         """Serve the tools hub landing page"""
         return render_template('tools_hub_landing.html')
 
+    @app.route('/api/health')
+    def health_check():
+        """Health check endpoint for Docker"""
+        return jsonify({'status': 'healthy', 'timestamp': os.uname().nodename})
+
     @app.errorhandler(413)
     def request_entity_too_large(error):
         return jsonify({'error': 'File too large. Maximum size is 3MB per file.'}), 413
